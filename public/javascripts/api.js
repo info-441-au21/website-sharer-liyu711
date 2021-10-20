@@ -3,14 +3,13 @@
 // the html that was returned from the api endpoint. 
 // if there was an error, call the displayPreviews() function with
 
-const { response } = require("express");
-
 // an error message and info from the error.
 function getURLPreview(url){
     alert("Insert your code here to call the api and get a preview of " + url);
-    fetch("api/v1/previewurl?url=" + url)
-    .then(response => response.text())
+    fetch("api/v1/previewurl?previewurl=" + url)
+    .then(response => response)
     .then(function(data) {
+        // console.log(data)
         displayPreviews(data)
     })
     .catch((error) => {
