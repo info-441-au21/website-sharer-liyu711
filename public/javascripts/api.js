@@ -5,9 +5,9 @@
 
 // an error message and info from the error.
 function getURLPreview(url){
-    alert("Insert your code here to call the api and get a preview of " + url);
+    // alert("Insert your code here to call the api and get a preview of " + url);
     fetch("api/v1/previewurl?previewurl=" + url)
-    .then(response => response)
+    .then(response => response.text())
     .then(function(data) {
         // console.log(data)
         displayPreviews(data)
