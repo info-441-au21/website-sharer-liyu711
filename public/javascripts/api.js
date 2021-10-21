@@ -16,5 +16,4 @@ function getURLPreview(url){
         var error_msg = "An error occured " + error
         displayPreviews(error_msg)
     })
-
 }
