@@ -58,7 +58,7 @@ router.get("/previewurl", (req, res) => {
             var description_html = "<p>" + description + "</p>"
             url_html += description_html
         }
-        let result_block = '<div style="max-width: 300px; border: solid 1px; padding: 3px; text-align: center;">' + url_html + '</div>'
+        let result_block = '<div style="max-width: 300px; border: solid 1px; padding: 3px; text-align: center; background-color: F4E6E4">' + url_html + '</div>'
         res.type('html')
         console.log(charsets[0])
         var testing_string = '<div style="max-width: 300px; border: solid 1px; padding: 3px; text-align: center;"><a href="https://www.imdb.com/title/tt3281548/"><p><strong>Little Women (2019) - IMDb</strong></p><img src="https://m.media-amazon.com/images/M/MV5BY2QzYTQyYzItMzAwYi00YjZlLThjNTUtNzMyMDdkYzJiNWM4XkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_FMjpg_UX1000_.jpg" style="max-height: 200px; max-width: 270px;"></a><p>Little Women: Directed by Greta Gerwig. With Saoirse Ronan, Emma Watson, Florence Pugh, Eliza Scanlen. Jo March reflects back and forth on her life, telling the beloved story of the March sisters - four young women, each determined to live life on her own terms.</p></div>'
