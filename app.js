@@ -6,6 +6,7 @@ import logger from 'morgan';
 import indexRouter from './routes/index.js';
 // import usersRouter from './routes/users.js';
 import apiv1 from './routes/apiv1.js'
+import apiv2 from './routes/v2/apiv2.js'
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -23,6 +24,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 // app.use('/users', usersRouter);
-app.use('/api/v1', apiv1);
+// app.use('/api/v1', apiv1);
+app.use('/api/v2', apiv2)
 
 export default app;

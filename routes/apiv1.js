@@ -4,7 +4,7 @@ import parser from 'node-html-parser';
 let router = express.Router();
 import fetch from 'node-fetch';
 
-router.get("/previewurl", (req, res) => {
+router.get("/previewurl", async function(req, res) {
     var url = req.query.previewurl
     fetch(url)
     .then(response => response.text())
