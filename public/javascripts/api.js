@@ -20,8 +20,8 @@ async function loadPostsApi(){
     return postsJson;
 }
 
-async function postUrlApi(url, description){
-    const myData = {url: url, description: description};
+async function postUrlApi(url, description, favorite){
+    const myData = {url: url, description: description, favorite: favorite};
     let status = await fetch(`api/${apiVersion}/posts`,
         {
             method: "POST",

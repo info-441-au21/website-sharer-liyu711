@@ -12,12 +12,13 @@ main().catch(err => console.log(err));
 let Webpages;
 
 async function main() {
-    const uri = "mongodb+srv://user2:123456A@cluster0.fye6b.mongodb.net/myFirstDatabase2?retryWrites=true&w=majority"
+    const uri = "mongodb+srv://user2:123456A@cluster0.fye6b.mongodb.net/webPageSharer?retryWrites=true&w=majority"
     await mongoose.connect(uri)
     const webpageSchema = new mongoose.Schema({
         url: String,
         description: String,
-        date_created: Date
+        date_created: Date,
+        favorite: String
       });
     // client = new MongoClient(uri)
     // await client.connect()
@@ -26,25 +27,18 @@ async function main() {
 }
 
 
-async function listDatabases(client){
-    databasesList = await client.db().admin().listDatabases();
- 
-    console.log("Databases:");
-    databasesList.databases.forEach(db => console.log(` - ${db.name}`));
-};
-
 router.post("/posts", async function(req, res, next) {
     let date_ob = new Date()
     let date = ("0" + date_ob.getDate()).slice(-2)
     let month = ("0" + (date_ob.getMonth() + 1)).slice(-2)
     let year = date_ob.getFullYear()
     let currentDate = year + "-" + month + "-" + date
-    console.log(currentDate)
     try {
         const newWebpage = new Webpages({
             url: req.body.url,
             description: req.body.description,
-            date_created: new Date(currentDate)
+            date_created: new Date(currentDate),
+            favorite: req.body.favorite
         });
         await newWebpage.save()
         res.send('added data')
@@ -61,7 +55,7 @@ router.get("/posts", async function(req, res, next) {
         // let data = await response.text()
         // console.log(data)
         let text = await getUrl(pageInfo.url)
-        let data = getPreview(text, pageInfo.url)
+        let data = getPreview(text, pageInfo.url, pageInfo.favorite)
         let resultDict = {
             description: pageInfo.description,
             htmlPreview: data
@@ -69,7 +63,6 @@ router.get("/posts", async function(req, res, next) {
         return resultDict
         // console.log(data)
     }))
-    console.log(pages)
     res.send(pages)
 })
 
@@ -80,7 +73,7 @@ async function getUrl(url) {
 }
 
 
-function getPreview(data, url){
+function getPreview(data, url, favoriteText){
     let html_test = parser.parse(data)
     var charsets = html_test.querySelectorAll('meta[charset]')
     let og_url = html_test.querySelectorAll('meta[property="og:url"]')
@@ -129,6 +122,10 @@ function getPreview(data, url){
         let description = og_description[0].attributes.content
         var description_html = "<p>" + description + "</p>"
         url_html += description_html
+    }
+    if (typeof favoriteText !== 'undefined'){
+        var favorite_html = "<p>" + favoriteText + "</p>"
+        url_html += favorite_html
     }
     let result_block = '<div style="max-width: 300px; border: solid 1px; padding: 3px; text-align: center; background-color: F4E6E4">' + url_html + '</div>'
     // console.log(result_block)

@@ -19,7 +19,8 @@ async function postUrl(){
     document.getElementById("postStatus").innerHTML = "sending data..."
     let url = document.getElementById("urlInput").value;
     let description = document.getElementById("descriptionInput").value;
-    let status = await postUrlApi(url, description);
+    let favorite = document.getElementById("favorite").value;
+    let status = await postUrlApi(url, description, favorite);
 
     if(status.status == "error"){
         document.getElementById("postStatus").innerText = "Error:" + status.error;
@@ -27,6 +28,7 @@ async function postUrl(){
         document.getElementById("urlInput").value = "";
         document.getElementById("descriptionInput").value = "";
         document.getElementById("url_previews").innerHTML = "";
+        document.getElementById("favorite").value = "";
         document.getElementById("postStatus").innerHTML = "successfully uploaded"
         loadPosts();
     }
