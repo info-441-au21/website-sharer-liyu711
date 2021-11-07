@@ -72,6 +72,14 @@ async function getUrl(url) {
     return data
 }
 
+const escapeHTML = str => str.replace(/[&<>'"]/g, 
+  tag => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[tag]));
 
 function getPreview(data, url, favoriteText){
     let html_test = parser.parse(data)
@@ -89,28 +97,28 @@ function getPreview(data, url, favoriteText){
     if (og_url.length == 0) {
         this_url = url
     } else {
-        this_url = og_url[0].attributes.content
+        this_url = escapeHTML(og_url[0].attributes.content)
     }
     if (og_title.length!=0) {
-        this_title = og_title[0].attributes.content
+        this_title = escapeHTML(og_title[0].attributes.content)
     } else {
         var title_replacement1 = html_test.querySelectorAll('title')
         if (title_replacement1.length!=0) {
-            this_title = title_replacement1[0].text
+            this_title = escapeHTML(title_replacement1[0].text)
         } else {
             this_title = url
         }
     }
     let title_html = "<p><strong>" + this_title + "</strong></p>"
     if (has_image) {
-        image_src = og_image[0].attributes.content
+        image_src = escapeHTML(og_image[0].attributes.content)
         var url_html = "<a href=" + this_url + ">" + title_html + "<img src=" + image_src +' style="max-height: 200px; max-width: 270px;"></a>'
     } else {
         var url_html = "<a href=" + this_url + ">" + title_html + '</a>'
     }
     if (has_charset) {
-        let charset1 = charsets[0].attributes.charset
-        let charset2 = charsets[0].attributes.charSet
+        let charset1 = escapeHTML(charsets[0].attributes.charset)
+        let charset2 = escapeHTML(charsets[0].attributes.charSet)
         if (charset1 == undefined) {
             var charset_html = "<h5>Character set of this website is: " + charset2+ "</h5>"
         } else {
@@ -119,7 +127,8 @@ function getPreview(data, url, favoriteText){
         url_html += charset_html
     } 
     if (has_description) {
-        let description = og_description[0].attributes.content
+        let description = escapeHTML(og_description[0].attributes.content)
+        console.log(description)
         var description_html = "<p>" + description + "</p>"
         url_html += description_html
     }
@@ -154,28 +163,28 @@ router.get("/previewurl", (req, res) => {
         if (og_url.length == 0) {
             this_url = url
         } else {
-            this_url = og_url[0].attributes.content
+            this_url = escapeHTML(og_url[0].attributes.content)
         }
         if (og_title.length!=0) {
-            this_title = og_title[0].attributes.content
+            this_title = escapeHTML(og_title[0].attributes.content)
         } else {
             var title_replacement1 = html_test.querySelectorAll('title')
             if (title_replacement1.length!=0) {
-                this_title = title_replacement1[0].text
+                this_title = escapeHTML(title_replacement1[0].text)
             } else {
                 this_title = url
             }
         }
         let title_html = "<p><strong>" + this_title + "</strong></p>"
         if (has_image) {
-            image_src = og_image[0].attributes.content
+            image_src = escapeHTML(og_image[0].attributes.content)
             var url_html = "<a href=" + this_url + ">" + title_html + "<img src=" + image_src +' style="max-height: 200px; max-width: 270px;"></a>'
         } else {
             var url_html = "<a href=" + this_url + ">" + title_html + '</a>'
         }
         if (has_charset) {
-            let charset1 = charsets[0].attributes.charset
-            let charset2 = charsets[0].attributes.charSet
+            let charset1 = escapeHTML(charsets[0].attributes.charset)
+            let charset2 = escapeHTML(charsets[0].attributes.charSet)
             if (charset1 == undefined) {
                 var charset_html = "<h5>Character set of this website is: " + charset2+ "</h5>"
             } else {
@@ -184,7 +193,7 @@ router.get("/previewurl", (req, res) => {
             url_html += charset_html
         } 
         if (has_description) {
-            let description = og_description[0].attributes.content
+            let description = escapeHTML(og_description[0].attributes.content)
             var description_html = "<p>" + description + "</p>"
             url_html += description_html
         }
