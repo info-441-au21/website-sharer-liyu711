@@ -1,5 +1,17 @@
 const apiVersion = "v2"
 
+async function loadIdentityApi(){
+    try{
+        let response = await fetch(`api/${apiVersion}/getIdentity`);
+        let responseJson = await response.json();
+        return responseJson;
+    }catch(error){
+        return {
+            status: "error",
+            error: "There was an error: " + error
+        };
+    }
+}
 
 // this function should call your URL preview api endpoint 
 // and return an html string with the preview
@@ -16,13 +28,13 @@ async function getURLPreview(url){
 async function loadPostsApi(){
     let response = await fetch(`api/${apiVersion}/posts`);
     let postsJson = await response.json();
-    console.log(response.body)
     return postsJson;
 }
 
-async function postUrlApi(url, description, favorite){
-    const myData = {url: url, description: description, favorite: favorite};
-    let status = await fetch(`api/${apiVersion}/posts`,
+async function postUrlApi(url, description){
+    try{
+    const myData = {url: url, description: description};
+    let response = await fetch(`api/${apiVersion}/posts`,
         {
             method: "POST",
             body: JSON.stringify(myData),
@@ -31,5 +43,9 @@ async function postUrlApi(url, description, favorite){
             }
         }
     )
-    return status;
+    let responseJson = await response.json();
+    return responseJson;
+    }catch(error){
+        return {status: error, error: error}
+    }
 }

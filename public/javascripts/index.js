@@ -3,7 +3,32 @@ function init(){
     urlInput.onkeyup = previewUrl;
     urlInput.onchange = previewUrl;
     urlInput.onclick = previewUrl;
+
+    loadIdentity();
+
     loadPosts();
+}
+
+async function loadIdentity(){
+    let identityInfo = await loadIdentityApi();
+    let identity_div = document.getElementById("identity_div");
+    if(identityInfo.status == "error"){
+        identity_div.innerHTML = `<div>
+        <button onclick="loadIdentity()">retry</button>
+        Error loading identity: <span id="identity_error_span"></span>
+        </div>`;
+        document.getElementById("identity_error_span").innerText = identityInfo.error;
+        document.getElementById("make_post_div").classList.add("d-none");
+    } else if(identityInfo.status == "loggedin"){
+        identity_div.innerHTML = `
+        <a href="#">${identityInfo.userInfo.name} (${identityInfo.userInfo.username})</a>
+        <a href="signout" class="btn btn-danger" role="button">Log out</a>`;
+        document.getElementById("make_post_div").classList.remove("d-none");
+    } else { //loggedout
+        identity_div.innerHTML = `
+        <a href="signin" class="btn btn-primary" role="button">Log in</a>`;
+        document.getElementById("make_post_div").classList.add("d-none");
+    }
 }
 
 
@@ -19,8 +44,7 @@ async function postUrl(){
     document.getElementById("postStatus").innerHTML = "sending data..."
     let url = document.getElementById("urlInput").value;
     let description = document.getElementById("descriptionInput").value;
-    let favorite = document.getElementById("favorite").value;
-    let status = await postUrlApi(url, description, favorite);
+    let status = await postUrlApi(url, description);
 
     if(status.status == "error"){
         document.getElementById("postStatus").innerText = "Error:" + status.error;
@@ -28,7 +52,6 @@ async function postUrl(){
         document.getElementById("urlInput").value = "";
         document.getElementById("descriptionInput").value = "";
         document.getElementById("url_previews").innerHTML = "";
-        document.getElementById("favorite").value = "";
         document.getElementById("postStatus").innerHTML = "successfully uploaded"
         loadPosts();
     }

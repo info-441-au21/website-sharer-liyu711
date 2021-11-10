@@ -12,7 +12,7 @@ main().catch(err => console.log(err));
 let Webpages;
 
 async function main() {
-    const uri = "mongodb+srv://user2:123456A@cluster0.fye6b.mongodb.net/webPageSharer2?retryWrites=true&w=majority"
+    const uri = "mongodb+srv://user2:123456A@cluster0.fye6b.mongodb.net/webPageSharer3?retryWrites=true&w=majority"
     await mongoose.connect(uri)
     const webpageSchema = new mongoose.Schema({
         url: String,
