@@ -117,12 +117,12 @@ function getPreview(data, url, favoriteText){
         var url_html = "<a href=" + this_url + ">" + title_html + '</a>'
     }
     if (has_charset) {
-        let charset1 = escapeHTML(charsets[0].attributes.charset)
-        let charset2 = escapeHTML(charsets[0].attributes.charSet)
+        let charset1 = charsets[0].attributes.charset
+        let charset2 = charsets[0].attributes.charSet
         if (charset1 == undefined) {
-            var charset_html = "<h5>Character set of this website is: " + charset2+ "</h5>"
+            var charset_html = "<h5>Character set of this website is: " + escapeHTML(charset2)+ "</h5>"
         } else {
-            var charset_html = "<h5>Character set of this website is: " + charset1+ "</h5>"
+            var charset_html = "<h5>Character set of this website is: " + escapeHTML(charset1)+ "</h5>"
         }
         url_html += charset_html
     } 
@@ -133,7 +133,7 @@ function getPreview(data, url, favoriteText){
         url_html += description_html
     }
     if (typeof favoriteText !== 'undefined'){
-        var favorite_html = "<p>" + favoriteText + "</p>"
+        var favorite_html = "<p>" + escapeHTML(favoriteText) + "</p>"
         url_html += favorite_html
     }
     let result_block = '<div style="max-width: 300px; border: solid 1px; padding: 3px; text-align: center; background-color: F4E6E4">' + url_html + '</div>'
