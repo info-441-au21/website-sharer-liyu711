@@ -4,6 +4,7 @@ import parser from 'node-html-parser';
 let router = express.Router();
 import fetch from 'node-fetch';
 import { MongoClient } from 'mongodb';
+import session from 'express-session'
 
 // const { MongoClient } = require('mongodb');
 // console.log("test")
@@ -26,6 +27,23 @@ async function main() {
     // console.log(Webpages)
 }
 
+router.get("/getIdentity", function(req, res, next){
+    let session = req.session
+    res.type("json")
+    if (session.isAuthenticated){
+        let result = {
+            status: "loggedin",
+            userInfo: {
+                name: session.account.name,
+                username: session.account.username
+            }
+        }
+        res.send(result)
+    } else {
+        let result = { status: "loggedout" }
+        res.send(result)
+    }
+})
 
 router.post("/posts", async function(req, res, next) {
     let date_ob = new Date()
@@ -55,7 +73,7 @@ router.get("/posts", async function(req, res, next) {
         // let data = await response.text()
         // console.log(data)
         let text = await getUrl(pageInfo.url)
-        let data = getPreview(text, pageInfo.url, pageInfo.favorite)
+        let data = getPreview(text, pageInfo.url)
         let resultDict = {
             description: pageInfo.description,
             htmlPreview: data
@@ -81,7 +99,7 @@ const escapeHTML = str => str.replace(/[&<>'"]/g,
       '"': '&quot;'
     }[tag]));
 
-function getPreview(data, url, favoriteText){
+function getPreview(data, url){
     let html_test = parser.parse(data)
     var charsets = html_test.querySelectorAll('meta[charset]')
     let og_url = html_test.querySelectorAll('meta[property="og:url"]')
@@ -132,16 +150,10 @@ function getPreview(data, url, favoriteText){
         var description_html = "<p>" + description + "</p>"
         url_html += description_html
     }
-    if (typeof favoriteText !== 'undefined'){
-        var favorite_html = "<p>" + escapeHTML(favoriteText) + "</p>"
-        url_html += favorite_html
-    }
     let result_block = '<div style="max-width: 300px; border: solid 1px; padding: 3px; text-align: center; background-color: F4E6E4">' + url_html + '</div>'
     // console.log(result_block)
     return result_block
     }
-
-
 
 router.get("/previewurl", (req, res) => {
     var url = req.query.url
@@ -208,4 +220,6 @@ router.get("/previewurl", (req, res) => {
         console.log('Error is ' + error)
     })
 })
+
+
 export default router
