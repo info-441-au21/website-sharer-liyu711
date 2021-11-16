@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
+import MsIdExpress from 'microsoft-identity-express'
 
 import indexRouter from './routes/index.js';
 // import usersRouter from './routes/users.js';
@@ -13,6 +14,19 @@ import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+const appSettings = {
+    appCredentials: {
+        clientId: "",
+        tenantId: "",
+        clientSecret: ""
+    },
+    authRoutes: {
+        redirect: "/redirect",
+        error: "/error",
+        unauthorized: "/unauthorized"
+    }
+}
 
 var app = express();
 
