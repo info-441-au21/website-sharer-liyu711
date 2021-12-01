@@ -4,34 +4,48 @@ import parser from 'node-html-parser';
 let router = express.Router();
 import fetch from 'node-fetch';
 import { MongoClient } from 'mongodb';
-import session from 'express-session'
+import session, { Session } from 'express-session'
 
 // const { MongoClient } = require('mongodb');
-// console.log("test")
+
 main().catch(err => console.log(err));
 
 let Webpages;
+let PostSchema;
+let CommentSchema;
+let UserSchema;
 
 async function main() {
     const uri = "mongodb+srv://user2:123456A@cluster0.fye6b.mongodb.net/webPageSharer3?retryWrites=true&w=majority"
     await mongoose.connect(uri)
+    const UserSchema = new mongoose.Schema({
+        username: String,
+        iceCream: String
+    })
     const postSchema = new mongoose.Schema({
-        url: String,
+        url:String,
         description: String,
         username: String,
         likes: [String],
-        
+        date_created: Date
     })
-    const webpageSchema = new mongoose.Schema({
-        url: String,
-        description: String,
-        date_created: Date,
-        favorite: String
-      });
+    const commentSchema = new mongoose.Schema({
+        username: String,
+        comment: String,
+        post: String,
+        created_date: Date
+    })
+    // const webpageSchema = new mongoose.Schema({
+    //     url: String,
+    //     description: String,
+    //     date_created: Date,
+    //     favorite: String
+    //   });
     // client = new MongoClient(uri)
     // await client.connect()
-    Webpages = mongoose.model('Webpages', webpageSchema)
-    // console.log(Webpages)
+    PostSchema = mongoose.model('PostSchema', postSchema)
+    CommentSchema = mongoose.model('CommentSchema', commentSchema)
+    UserSchema = mongoose.model('UserSchema', UserSchema)
 }
 
 router.get("/getIdentity", function(req, res, next){
@@ -52,28 +66,51 @@ router.get("/getIdentity", function(req, res, next){
     }
 })
 
-router.post("/posts", async function(req, res, next) {
+router.post("/posts", async function(req, res, next) {   
+    let session = req.session
     let date_ob = new Date()
     let date = ("0" + date_ob.getDate()).slice(-2)
     let month = ("0" + (date_ob.getMonth() + 1)).slice(-2)
     let year = date_ob.getFullYear()
     let currentDate = year + "-" + month + "-" + date
     try {
-        const newWebpage = new Webpages({
+        const post = new PostSchema({
             url: req.body.url,
             description: req.body.description,
+            username: session.account.username,
             date_created: new Date(currentDate),
             favorite: req.body.favorite
         });
-        await newWebpage.save()
+        await post.save()
         res.send('added data')
     } catch(error){
         res.send("error info: " + error)
     }
 })
 
+// router.post("/posts", async function(req, res, next) {
+//     let date_ob = new Date()
+//     let date = ("0" + date_ob.getDate()).slice(-2)
+//     let month = ("0" + (date_ob.getMonth() + 1)).slice(-2)
+//     let year = date_ob.getFullYear()
+//     let currentDate = year + "-" + month + "-" + date
+//     try {
+//         const newWebpage = new Webpages({
+//             url: req.body.url,
+//             description: req.body.description,
+//             date_created: new Date(currentDate),
+//             favorite: req.body.favorite
+//         });
+//         await newWebpage.save()
+//         res.send('added data')
+//     } catch(error){
+//         res.send("error info: " + error)
+//     }
+// })
+
 router.get("/posts", async function(req, res, next) {
-    let allPages = await Webpages.find()
+    let allPages = await PostSchema.find()
+    // console.log(allPages)
     let pages = await Promise.all(allPages.map(async function(pageInfo){
         var result_block = ''
         // let response = await fetch(pageInfo.url)
@@ -82,11 +119,14 @@ router.get("/posts", async function(req, res, next) {
         let text = await getUrl(pageInfo.url)
         let data = getPreview(text, pageInfo.url)
         let resultDict = {
+            username: pageInfo.username,
+            id: pageInfo._id,
             description: pageInfo.description,
-            htmlPreview: data
+            htmlPreview: data,
+            created_date: pageInfo.date_created,
+            likes: pageInfo.likes
         }
         return resultDict
-        // console.log(data)
     }))
     res.send(pages)
 })
@@ -106,16 +146,15 @@ const escapeHTML = str => str.replace(/[&<>'"]/g,
       '"': '&quot;'
     }[tag]));
 
+
 function getPreview(data, url){
     let html_test = parser.parse(data)
-    var charsets = html_test.querySelectorAll('meta[charset]')
     let og_url = html_test.querySelectorAll('meta[property="og:url"]')
     let og_title = html_test.querySelectorAll('meta[property="og:title"]')
     let og_image = html_test.querySelectorAll('meta[property="og:image"]')
     let og_description = html_test.querySelectorAll('meta[property="og:description"]')
     let has_image = og_image.length> 0
     let has_description = og_description.length>0
-    let has_charset = charsets.length !=0
     let this_url = ""
     let this_title = ""
     let image_src = ""
@@ -141,16 +180,6 @@ function getPreview(data, url){
     } else {
         var url_html = "<a href=" + this_url + ">" + title_html + '</a>'
     }
-    if (has_charset) {
-        let charset1 = charsets[0].attributes.charset
-        let charset2 = charsets[0].attributes.charSet
-        if (charset1 == undefined) {
-            var charset_html = "<h5>Character set of this website is: " + escapeHTML(charset2)+ "</h5>"
-        } else {
-            var charset_html = "<h5>Character set of this website is: " + escapeHTML(charset1)+ "</h5>"
-        }
-        url_html += charset_html
-    } 
     if (has_description) {
         let description = escapeHTML(og_description[0].attributes.content)
         console.log(description)
@@ -168,14 +197,12 @@ router.get("/previewurl", (req, res) => {
     .then(response => response.text())
     .then(function(data) {
         let html_test = parser.parse(data)
-        var charsets = html_test.querySelectorAll('meta[charset]')
         let og_url = html_test.querySelectorAll('meta[property="og:url"]')
         let og_title = html_test.querySelectorAll('meta[property="og:title"]')
         let og_image = html_test.querySelectorAll('meta[property="og:image"]')
         let og_description = html_test.querySelectorAll('meta[property="og:description"]')
         let has_image = og_image.length> 0
         let has_description = og_description.length>0
-        let has_charset = charsets.length !=0
         let this_url = ""
         let this_title = ""
         let image_src = ""
@@ -189,6 +216,7 @@ router.get("/previewurl", (req, res) => {
         } else {
             var title_replacement1 = html_test.querySelectorAll('title')
             if (title_replacement1.length!=0) {
+                console.log("title")
                 this_title = escapeHTML(title_replacement1[0].text)
             } else {
                 this_title = url
@@ -201,16 +229,6 @@ router.get("/previewurl", (req, res) => {
         } else {
             var url_html = "<a href=" + this_url + ">" + title_html + '</a>'
         }
-        if (has_charset) {
-            let charset1 = escapeHTML(charsets[0].attributes.charset)
-            let charset2 = escapeHTML(charsets[0].attributes.charSet)
-            if (charset1 == undefined) {
-                var charset_html = "<h5>Character set of this website is: " + charset2+ "</h5>"
-            } else {
-                var charset_html = "<h5>Character set of this website is: " + charset1+ "</h5>"
-            }
-            url_html += charset_html
-        } 
         if (has_description) {
             let description = escapeHTML(og_description[0].attributes.content)
             var description_html = "<p>" + description + "</p>"
@@ -228,5 +246,167 @@ router.get("/previewurl", (req, res) => {
     })
 })
 
+router.post('/likePost', async function (req, res, next){
+    let session = req.session
+    if (session.isAuthenticated == false) {
+        res.type('json')
+        res.send({
+            status: 'error',
+            error: "not logged in"
+        })
+    } else {
+        try{
+            let posts = await PostSchema.findById(req.body.postID)
+            if (!posts.likes.includes(session.account.username)) {
+                posts.likes.push(session.account.username)
+            }
+            console.log(posts.likes)
+            let result = await posts.save()
+            res.type('json')
+            res.send({status: 'success'})
+        }
+        catch(err){
+            res.json({
+                status: 'error',
+                error: err
+            })
+        }
+    }
+})
+
+router.post('/unlikePost', async function (req, res, next) {
+    let id = req.body.postID
+    let session = req.session
+    let username = session.account.username
+    if (session.isAuthenticated == false) {
+        res.type('json')
+        res.send({
+            status: 'error',
+            error: "not logged in"
+        })
+    } else {
+        try{
+            let posts = await PostSchema.findById(req.body.postID)
+            if (posts.likes.includes(session.account.username)) {
+                let index = posts.likes.indexOf(username)
+                posts.likes.splice(index, 1)
+            }
+            console.log(posts.likes)
+            let result = await posts.save()
+            res.type('json')
+            res.send({status: 'success'})
+        }
+        catch(err) {
+            res.json({
+                status: 'error',
+                error: err
+            })
+        }
+    }
+})
+
+router.get("/comments", async function(req, res, next){
+    // console.log(req.postID)
+    try{
+        let commentResults = await CommentSchema.find({"post": req.query.postID})
+        let comments = await Promise.all(commentResults.map(async function(comment){
+            var result_block = ''
+            let resultDict = {
+                check: req.body.postID,
+                _id: comment._id,
+                username: comment.username,
+                comment: comment.comment,
+                post: comment.post,
+                created_date: comment.created_date
+            }
+            return resultDict
+        }))
+        res.send(comments)
+    }catch(err){
+        res.json({
+            status: 'error',
+            error: err
+        })
+    }
+    
+})
+
+router.post('/comments', async function(req, res, next){
+    let session = req.session
+    let date_ob = new Date()
+    let date = ("0" + date_ob.getDate()).slice(-2)
+    let month = ("0" + (date_ob.getMonth() + 1)).slice(-2)
+    let year = date_ob.getFullYear()
+    let currentDate = year + "-" + month + "-" + date
+    try {
+        const comment = new CommentSchema({
+            username: session.account.username,
+            comment: req.body.newComment,
+            post: req.body.postID,
+            created_date: currentDate
+        });
+        let result = await comment.save()
+        res.json({status: 'success'})
+    }catch(err){
+        res.json({
+            status: 'error',
+            error: err
+        })
+    }
+})
+
+
+router.get('/userPosts', async function(req, res, next){
+    let user = req.query.username
+    let allPages = await PostSchema.find({"username": user})
+    let pages = await Promise.all(allPages.map(async function(pageInfo){
+        var result_block = ''
+        // let response = await fetch(pageInfo.url)
+        // let data = await response.text()
+        // console.log(data)
+        let text = await getUrl(pageInfo.url)
+        let data = getPreview(text, pageInfo.url)
+        let resultDict = {
+            username: pageInfo.username,
+            id: pageInfo._id,
+            description: pageInfo.description,
+            htmlPreview: data,
+            created_date: pageInfo.date_created,
+            likes: pageInfo.likes
+        }
+        return resultDict
+    }))
+    res.send(pages)
+})
+
+router.delete('/posts', async function(req, res, next){
+    let session = req.session
+    if (!session.isAuthenticated){
+        res.json({status: 'error', error: "not logged in"})
+    } else {
+        try {
+            let username = req.session.account.username
+            let postId = req.body.postID
+            let post = await PostSchema.find({_id: postId})
+            console.log(post[0].username)
+            console.log(username)
+            if (post[0].username!=username) {
+                res.json({
+                    status: 'error',
+                    error: "you can only delete your own posts"
+                 })
+            }else {
+                let deletedComment = await CommentSchema.deleteMany({"post": postId})
+                let deletedPost = await PostSchema.deleteOne({_id: postId})
+                res.json({status: 'success'})
+            }
+        }catch(err){
+            res.json({
+                status: 'error',
+                error: err
+            })
+        }
+    }
+})
 
 export default router

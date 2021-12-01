@@ -9,6 +9,7 @@ import indexRouter from './routes/index.js';
 // import usersRouter from './routes/users.js';
 import apiv1 from './routes/apiv1.js'
 import apiv2 from './routes/v2/apiv2.js'
+import apiv3 from './routes/v3/apiv3.js'
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -60,14 +61,12 @@ app.get('/signout',
 app.get('/error', (req, res) => res.status(500).send('server error'));
 app.get('/unauthorized', (req, res) => res.status(401).send('Permission denied'));
 
-
-
 app.use('/', indexRouter);
 // app.use('/users', usersRouter);
 // app.use('/api/v1', apiv1);
 app.use('/api/v2', apiv2)
+app.use('/api/v3',apiv3)
 app.get('/signin',
     msid.signIn
-
 )
 export default app;
