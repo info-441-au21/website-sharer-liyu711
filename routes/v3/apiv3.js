@@ -18,9 +18,9 @@ let UserSchema;
 async function main() {
     const uri = "mongodb+srv://user2:123456A@cluster0.fye6b.mongodb.net/webPageSharer3?retryWrites=true&w=majority"
     await mongoose.connect(uri)
-    const UserSchema = new mongoose.Schema({
+    const userSchema = new mongoose.Schema({
         username: String,
-        iceCream: String
+        icecream: String
     })
     const postSchema = new mongoose.Schema({
         url:String,
@@ -45,7 +45,7 @@ async function main() {
     // await client.connect()
     PostSchema = mongoose.model('PostSchema', postSchema)
     CommentSchema = mongoose.model('CommentSchema', commentSchema)
-    UserSchema = mongoose.model('UserSchema', UserSchema)
+    UserSchema = mongoose.model('UserSchema', userSchema)
 }
 
 router.get("/getIdentity", function(req, res, next){
@@ -260,7 +260,6 @@ router.post('/likePost', async function (req, res, next){
             if (!posts.likes.includes(session.account.username)) {
                 posts.likes.push(session.account.username)
             }
-            console.log(posts.likes)
             let result = await posts.save()
             res.type('json')
             res.send({status: 'success'})
@@ -408,5 +407,50 @@ router.delete('/posts', async function(req, res, next){
         }
     }
 })
+
+router.get('/iceCream', async function(req, res, next){
+    let username = req.query.username
+    let ice = await UserSchema.find({"username": username})
+    let resultDict = {
+        username: ice[0].username,
+        ice: ice[0].icecream
+    }
+    res.send(resultDict)
+})
+
+router.post('/iceCream', async function(req, res, next){
+    console.log(req.body.username)
+    let username = req.body.username
+    let previous = await UserSchema.find({"username": username})
+    let result = {}
+    console.log(previous)
+    try{
+        if (previous[0]==undefined){
+            console.log("No")
+            const ice = new UserSchema({
+                username: username,
+                icecream: req.body.iceCream
+            })
+            let result = await ice.save()
+        }else{
+            let deleted = await UserSchema.deleteOne({"username": username})
+            const ice = new UserSchema({
+                username: username,
+                icecream: req.body.iceCream
+            })
+            let result = await ice.save()
+        }
+        res.json({
+            status: "success"
+        })
+    } catch (err) {
+        res.json({
+            status: 'error',
+            error: err
+        })
+    }
+})
+
+
 
 export default router

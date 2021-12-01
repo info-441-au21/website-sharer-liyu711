@@ -3,11 +3,6 @@ async function init(){
     loadUserInfo();
 }
 
-async function saveUserInfo(){
-    //TODO: do an ajax call to save whatever info you want about the user from the user table
-    //see postComment() in the index.js file as an example of how to do this
-}
-
 async function loadUserInfo(){
     const urlParams = new URLSearchParams(window.location.search);
     const username = urlParams.get('user');
@@ -20,9 +15,15 @@ async function loadUserInfo(){
         document.getElementById("user_info_new_div").classList.add("d-none");
     }
     
-    //TODO: do an ajax call to load whatever info you want about the user from the user table
-
+    let iceJson = await loadIceAPI(username)
+    console.log(iceJson)
+    let text = "My favorite ice cream is " + iceJson.ice
+    document.getElementById("user_info_div").innerText = text
     loadUserInfoPosts(username)
+}
+
+async function test(){
+    document.getElementById("demo").innerHTML = "YOU CLICKED ME!";
 }
 
 async function loadUserInfoPosts(username){
@@ -45,6 +46,19 @@ async function loadUserInfoPosts(username){
     document.getElementById("posts_box").innerHTML = postsHtml;
 }
 
+async function saveUserInfo(){
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get('user');
+    let iceCream = document.getElementById("iceCreamInput").value
+    let status = await postIceAPI(username, iceCream);
+    if(status.status == "error"){
+        document.getElementById("iceStatus").innerText = "Error:" + status.error;
+    } else {
+        document.getElementById("iceCreamInput").value = "";
+        document.getElementById("iceStatus").innerHTML = "successfully uploaded"
+        loadUserInfo();
+    }
+}
 
 async function deletePost(postId){
     let responesJSON = await deletePostAPI(postId);

@@ -59,6 +59,9 @@ async function postUrl(){
     }
 }
 
+async function test(){
+    console.log('test')
+}
 
 let lastURLPreviewed = "";
 async function previewUrl(){

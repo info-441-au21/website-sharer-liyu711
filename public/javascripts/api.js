@@ -13,6 +13,20 @@ async function loadIdentityApi(){
     }
 }
 
+async function loadIceAPI(username){
+    try{
+        let response = await fetch(`api/${apiVersion}/iceCream?username=${username}`)
+        let responseJson = await response.json()
+        return responseJson
+    } catch(err){
+        return{
+            status: "error",
+            error: err
+        }
+    }
+}
+
+
 // this function should call your URL preview api endpoint 
 // and return an html string with the preview
 async function getURLPreview(url){
@@ -36,6 +50,13 @@ async function loadUserPostsApi(username){
     let postsJson = await response.json();
     return postsJson;
 }
+
+async function getIceAPI(username){
+    let response = await fetch(`api/${apiVersion}/iceCream?username=${username}`)
+    let resJson = response.json()
+    return responseJson
+}
+
 
 async function postUrlApi(url, description){
     try{
@@ -108,6 +129,23 @@ async function getCommentsAPI(postID){
         return {status: error, error: error}
     }
 }
+async function postIceAPI(username, iceCream){
+    console.log(username)
+    console.log(iceCream)
+    try{
+        const myData = {username: username, iceCream: iceCream};
+        let response = await fetch(`api/${apiVersion}/iceCream`, {
+            method: "POST",
+            body: JSON.stringify(myData),
+            headers: {'Content-Type': 'application/json'}
+        })
+        let responseJson = await response.json();
+        return responseJson;
+        }catch(error){
+            return {status: error, error: error}
+        }
+}
+
 
 async function postCommentAPI(postID, newComment){
     try{
