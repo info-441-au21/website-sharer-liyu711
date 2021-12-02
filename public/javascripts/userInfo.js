@@ -22,10 +22,6 @@ async function loadUserInfo(){
     loadUserInfoPosts(username)
 }
 
-async function test(){
-    document.getElementById("demo").innerHTML = "YOU CLICKED ME!";
-}
-
 async function loadUserInfoPosts(username){
     let postsJson = await loadUserPostsApi(username);
     let postsHtml = postsJson.map(postInfo => {

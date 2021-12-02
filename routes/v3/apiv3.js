@@ -66,6 +66,16 @@ router.get("/getIdentity", function(req, res, next){
     }
 })
 
+function isValidHttpUrl(string) {
+    let url;
+    try {
+      url = new URL(string);
+    } catch (_) {
+      return false;  
+    }  
+    return url.protocol === "http:" || url.protocol === "https:";
+}
+
 router.post("/posts", async function(req, res, next) {   
     let session = req.session
     let date_ob = new Date()
@@ -73,18 +83,31 @@ router.post("/posts", async function(req, res, next) {
     let month = ("0" + (date_ob.getMonth() + 1)).slice(-2)
     let year = date_ob.getFullYear()
     let currentDate = year + "-" + month + "-" + date
-    try {
-        const post = new PostSchema({
-            url: req.body.url,
-            description: req.body.description,
-            username: session.account.username,
-            date_created: new Date(currentDate),
-            favorite: req.body.favorite
-        });
-        await post.save()
-        res.send('added data')
-    } catch(error){
-        res.send("error info: " + error)
+    let valid_url = isValidHttpUrl(req.body.url)
+    if (valid_url){
+        try {
+            const post = new PostSchema({
+                url: req.body.url,
+                description: req.body.description,
+                username: session.account.username,
+                date_created: new Date(currentDate),
+                favorite: req.body.favorite
+            });
+            await post.save()
+            res.json({
+                status: "success"
+            })
+        } catch(error){
+            res.json({
+                status: "error",
+                error: error
+            })
+        }
+    } else {
+        res.json({
+            status: "error",
+            error: "invalid url"
+        })
     }
 })
 
@@ -305,7 +328,6 @@ router.post('/unlikePost', async function (req, res, next) {
 })
 
 router.get("/comments", async function(req, res, next){
-    // console.log(req.postID)
     try{
         let commentResults = await CommentSchema.find({"post": req.query.postID})
         let comments = await Promise.all(commentResults.map(async function(comment){
@@ -450,7 +472,5 @@ router.post('/iceCream', async function(req, res, next){
         })
     }
 })
-
-
 
 export default router
